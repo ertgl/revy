@@ -1,0 +1,10 @@
+version: 2
+
+updates:
+
+  - package-ecosystem: "pip"
+    directory: "/requirements"
+    schedule:
+      interval: "daily"
+      time: "10:00"
+      timezone: "Europe/Istanbul"

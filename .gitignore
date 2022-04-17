@@ -1,0 +1,30 @@
+# Editor artifacts.
+.idea/
+.vscode/
+.history/
+
+# Python artifacts.
+__pycache__/
+*.py[cod]
+
+# Mypy artifacts.
+.mypy_cache/
+
+# Virtual environment artifacts.
+.venv/
+
+# Local development artifacts.
+db.sqlite3
+
+# Docs.
+/docs/build/
+/docs/source/api/
+
+# PyPI.
+*.egg-info/
+/build/
+/dist/
+
+# Samples
+/samples/django/**/migrations/*
+!/samples/django/**/migrations/__init__.py

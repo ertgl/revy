@@ -1,0 +1,2 @@
+asgiref
+django
