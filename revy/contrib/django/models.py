@@ -22,6 +22,7 @@ from django.utils.translation import gettext_lazy as _
 
 import revy.abc
 from revy.contrib.django import _typing
+from revy.contrib.django.aggregates import ObjectSnapshot
 from revy.contrib.django.conf import settings
 from revy.contrib.django.deletion import (
     CASCADE,
@@ -35,9 +36,14 @@ from revy.contrib.django.utils import (
     get_json_encoder_class,
     get_object_delta_model,
 )
+from revy.dataclasses.metadata import (
+    unwrap_metadata,
+    wrap_metadata,
+)
 
 
 __all__ = (
+    'ObjectSnapshot',
     'CASCADE',
     'SET',
     'SET_DEFAULT',
@@ -57,11 +63,6 @@ __all__ = (
     'AttributeDelta',
     'ModelInstanceState',
     'get_model_instance_state',
-)
-
-from revy.dataclasses.metadata import (
-    unwrap_metadata,
-    wrap_metadata,
 )
 
 

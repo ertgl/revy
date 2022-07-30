@@ -63,6 +63,16 @@ test.samples.django.accounting:
 		python manage.py test ledger
 
 
+test.samples.django.recovery:
+	cd samples/django/recovery && \
+		rm -f db.sqlite3 && \
+		rm -f users/migrations/*.py && \
+		touch users/migrations/__init__.py && \
+		python manage.py makemigrations users --no-header && \
+		python manage.py migrate && \
+		python manage.py test users
+
+
 test.samples.django.swappable:
 	cd samples/django/swappable && \
 		rm -f db.sqlite3 && \
@@ -74,7 +84,7 @@ test.samples.django.swappable:
 		python manage.py test revisions
 
 
-test.samples.django: django test.samples.django.accounting test.samples.django.swappable
+test.samples.django: django test.samples.django.accounting test.samples.django.recovery test.samples.django.swappable
 
 
 test.samples: test.samples.django
