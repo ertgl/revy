@@ -83,8 +83,8 @@ class ObjectSnapshot(Subquery):
             GenericForeignKey,
             options.get_field(delta_model.OBJECT_FIELD_NAME),
         )
-        ct_field = options.get_field(generic_fk_field.ct_field)
-        fk_field = options.get_field(generic_fk_field.fk_field)
+        ct_field = cast(Field, options.get_field(generic_fk_field.ct_field))
+        fk_field = cast(Field, options.get_field(generic_fk_field.fk_field))
         return ct_field, fk_field
 
     @classmethod
