@@ -17,7 +17,7 @@ class ArgumentParser(argparse.ArgumentParser):
         **kwargs: Any,
     ) -> None:
         kwargs.setdefault('prog', 'revy')
-        kwargs.setdefault('description', 'A toolkit for building version control systems.')
+        kwargs.setdefault('description', 'A toolkit for building data-driven version control systems.')
         super(ArgumentParser, self).__init__(*args, **kwargs)
         self.add_argument(
             '-v',
