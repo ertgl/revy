@@ -37,7 +37,9 @@ with (
 
 Context management is done by the [Stackholm](https://github.com/ertgl/stackholm/) project.
 The implementation is both space and time efficient, also sync / async compatible.
-All the context (or stack) operations have O(1) time complexity, and they are zero-copy.
+Context (or stack) operations have O(1) time complexity, and they are zero-copy.
+(Except the methods prefixed by `via_`. They are O(n) in the worst case, where n is the
+number of checkpoint datas to be set, which constantly equals to 1. That makes them amortized O(1).)
 
 
 ### Generic Actors
