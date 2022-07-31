@@ -50,7 +50,7 @@ class Version:
         return f'{self.major}.{self.minor}.{self.micro}{segment}{build}'
 
 
-version = Version(1, 0, 0, 'alpha', 15)
+version = Version(1, 0, 0, 'alpha', 16)
 
 VERSION = version.to_tuple()
 

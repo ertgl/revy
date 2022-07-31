@@ -22,9 +22,9 @@ from django.db.models import (
 )
 from django.db.models.options import Options
 
-from revy.context import Context
 from revy.contrib.django.utils import (
     get_attribute_delta_model,
+    get_context_class,
     get_delta_model,
     get_object_delta_model,
     get_revision_model,
@@ -161,6 +161,8 @@ class Patcher:
 
         from revy.contrib.django.models import get_model_instance_state
 
+        context_class = get_context_class()
+
         original_init = cast(
             Callable[..., None],
             model.__init__,
@@ -173,7 +175,7 @@ class Patcher:
             **kwargs: Any,
         ) -> None:
 
-            if Context.is_disabled():
+            if context_class.is_disabled():
                 return original_init(self, *args, **kwargs)
 
             current_frame = inspect.currentframe()
@@ -235,6 +237,8 @@ class Patcher:
 
         from revy.contrib.django.models import get_model_instance_state
 
+        context_class = get_context_class()
+
         original_setattr = cast(
             Callable[..., None],
             model.__setattr__,
@@ -247,7 +251,7 @@ class Patcher:
             value: Any,
         ) -> None:
 
-            if Context.is_disabled():
+            if context_class.is_disabled():
                 return original_setattr(self, attname, value)
 
             meta = cast(Options, model._meta)  # noqa
@@ -292,10 +296,10 @@ class Patcher:
 
             attribute_delta_class = get_attribute_delta_model()
 
-            with Context():
+            with context_class():
 
                 if is_caused_by_system:
-                    Context.set_actor(None)
+                    context_class.set_actor(None)
 
                 previous_attribute_delta_indexes = state.field_name_to_attribute_delta_index_mapping.get(
                     field.attname,
@@ -318,7 +322,7 @@ class Patcher:
                     else None
                 )
 
-                actor = Context.get_actor()
+                actor = context_class.get_actor()
 
                 is_first_delta = state.is_new and len(previous_attribute_delta_indexes) == 0
 
@@ -328,7 +332,7 @@ class Patcher:
                     else attribute_delta_class.ACTION_UNSET
                 )
 
-                description = Context.get_attribute_delta_description()
+                description = context_class.get_attribute_delta_description()
 
                 was_default = state.is_new
                 was_default &= previous_actor is None
@@ -396,6 +400,8 @@ class Patcher:
 
         from revy.contrib.django.models import get_model_instance_state
 
+        context_class = get_context_class()
+
         original_save_base = cast(
             Callable[..., None],
             model.save_base,
@@ -408,7 +414,7 @@ class Patcher:
             **kwargs: Any,
         ) -> None:
 
-            if Context.is_disabled():
+            if context_class.is_disabled():
                 return original_save_base(self, *args, **kwargs)
 
             state = get_model_instance_state(self)
@@ -427,11 +433,11 @@ class Patcher:
                 original_save_base(self, *args, **kwargs)
                 exit_stack.pop_all()
 
-                revision = Context.get_revision()
+                revision = context_class.get_revision()
                 if revision is None:
                     revision_class = get_revision_model()
                     revision = revision_class()
-                    revision.set_description(Context.get_revision_description())
+                    revision.set_description(context_class.get_revision_description())
                     revision.save()
                 revision = cast('AbstractRevision', revision)
 
@@ -445,9 +451,9 @@ class Patcher:
 
                 object_delta = object_delta_class()
                 object_delta.set_revision(revision)
-                object_delta.set_actor(Context.get_actor())
+                object_delta.set_actor(context_class.get_actor())
                 object_delta.set_action(action)
-                object_delta.set_description(Context.get_object_delta_description())
+                object_delta.set_description(context_class.get_object_delta_description())
                 object_delta.set_object(self)
                 object_delta.save()
 
@@ -497,6 +503,8 @@ class Patcher:
 
         from revy.contrib.django.models import get_model_instance_state
 
+        context_class = get_context_class()
+
         original_refresh_from_db = cast(
             Callable[..., None],
             model.refresh_from_db,
@@ -509,7 +517,7 @@ class Patcher:
             **kwargs: Any,
         ) -> None:
 
-            if Context.is_disabled():
+            if context_class.is_disabled():
                 return original_refresh_from_db(self, *args, **kwargs)
 
             state = get_model_instance_state(self)
@@ -567,6 +575,8 @@ class Patcher:
 
         from revy.contrib.django.models import get_model_instance_state
 
+        context_class = get_context_class()
+
         original_delete = cast(
             Callable[..., None],
             model.delete,
@@ -579,7 +589,7 @@ class Patcher:
             **kwargs: Any,
         ) -> None:
 
-            if Context.is_disabled():
+            if context_class.is_disabled():
                 return original_delete(self, *args, **kwargs)
 
             state = get_model_instance_state(self)
@@ -595,20 +605,20 @@ class Patcher:
 
                 exit_stack.callback(restore_state)
 
-                revision = Context.get_revision()
+                revision = context_class.get_revision()
                 if revision is None:
                     revision_class = get_revision_model()
                     revision = revision_class()
-                    revision.set_description(Context.get_revision_description())
+                    revision.set_description(context_class.get_revision_description())
                     revision.save()
                 revision = cast('AbstractRevision', revision)
 
                 object_delta_class = get_object_delta_model()
                 object_delta = object_delta_class()
                 object_delta.set_revision(revision)
-                object_delta.set_actor(Context.get_actor())
+                object_delta.set_actor(context_class.get_actor())
                 object_delta.set_action(object_delta_class.ACTION_DELETE)
-                object_delta.set_description(Context.get_object_delta_description())
+                object_delta.set_description(context_class.get_object_delta_description())
                 object_delta.set_object(self)
                 object_delta.save()
 

@@ -12,6 +12,7 @@ from django.utils.module_loading import import_string
 
 
 if TYPE_CHECKING:
+    from revy.context import Context
     from revy.contrib.django.models import (
         AbstractAttributeDelta,
         AbstractDelta,
@@ -26,6 +27,7 @@ __all__ = (
     'get_object_delta_model',
     'get_attribute_delta_model',
     'get_json_encoder_class',
+    'get_context_class',
 )
 
 
@@ -102,4 +104,12 @@ def get_json_encoder_class() -> Type[JSONEncoder]:
     return cast(
         Type[JSONEncoder],
         import_string(settings.JSON_ENCODER_CLASS),
+    )
+
+
+def get_context_class() -> Type['Context']:
+    from revy.contrib.django.conf import settings
+    return cast(
+        Type['Context'],
+        import_string(settings.CONTEXT_CLASS),
     )

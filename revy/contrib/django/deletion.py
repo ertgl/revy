@@ -18,8 +18,8 @@ from django.db.models.deletion import (
 )
 from django.db.models.fields.related import RelatedField
 
-from revy import Context
 from revy.contrib.django.conf import settings
+from revy.contrib.django.utils import get_context_class
 
 
 __all__ = (
@@ -28,6 +28,9 @@ __all__ = (
     'SET_NULL',
     'SET_DEFAULT',
 )
+
+
+Context = get_context_class()
 
 
 def _get_sub_object_iterator(
