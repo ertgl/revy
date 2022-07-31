@@ -110,8 +110,8 @@ class ObjectSnapshot(Subquery):
                     att_ct_field.attname: OuterRef(obj_ct_field.attname),
                     att_fk_field.attname: OuterRef(obj_fk_field.attname),
                     attribute_delta_model.ATTRIBUTE_NAME_FIELD_NAME: attname,
+                    f'{attribute_delta_model.OBJECT_DELTA_FIELD_NAME}__pk__lte': OuterRef('pk'),
                 },
-                pk__lt=OuterRef('pk'),
             ).order_by(
                 '-pk',
             ).values(
@@ -133,10 +133,9 @@ class ObjectSnapshot(Subquery):
         **kwargs: Any,
     ) -> None:
         object_delta_model = get_object_delta_model()
-        content_type = ContentType.objects.get_for_model(model)
+        ContentType.objects.get_for_model(model)
         queryset = object_delta_model.objects.filter(
-            content_type=content_type,
-            action=object_delta_model.ACTION_DELETE,
+            pk=OuterRef('pk'),
         ).annotate(
             snapshot=self.__class__.build_instance(model),
         ).values(
