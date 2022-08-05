@@ -1,6 +1,6 @@
 ### [Revy](#)
 
-A toolkit for building data-driven version control systems.
+A toolkit for building revision control systems.
 
 ---
 
@@ -11,8 +11,8 @@ A toolkit for building data-driven version control systems.
 
 ## Features
 
-With this library, you can produce various version control systems for your data.
-When Revy is used without any customization, it simply gives you a history system.
+With this library, you can produce various revision control systems for your data.
+When Revy is used without any customization, it simply gives you a revision history.
 
 All the models in the package are swappable. So, you are free to expand the logic
 by writing your own models instead of using the default ones.
