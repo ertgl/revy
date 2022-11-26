@@ -13,7 +13,7 @@ SWAPPABLE_SAMPLE_DIR = BASE_DIR / 'samples' / 'django' / 'swappable'
 INITIAL_MIGRATION_FILE_PATH = SWAPPABLE_SAMPLE_DIR / 'revisions' / 'migrations' / '0001_initial.py'
 
 
-def main():
+def main() -> None:
     migration_file_content = INITIAL_MIGRATION_FILE_PATH.read_text()
     migration_module = ast.parse(migration_file_content)
     migration_class_def: Optional[ast.ClassDef] = None
