@@ -117,7 +117,7 @@ class ObjectSnapshot(Subquery):
             ).values(
                 attribute_delta_model.NEW_VALUE_FIELD_NAME,
             )[:1]
-        return JSONObject(**annotations)
+        return JSONObject(**annotations)  # type: ignore[arg-type]
 
     @classmethod
     def build_instance(

@@ -92,14 +92,14 @@ class AbstractRevision(
     ) -> None:
         setattr(self, self.__class__.DESCRIPTION_FIELD_NAME, description)
 
-    def get_deltas(self) -> _typing.QuerySet['AbstractDelta']:  # type: ignore[misc]
+    def get_deltas(self) -> _typing.QuerySet['AbstractDelta']:  # type: ignore[type-arg]
         delta_class = get_delta_model()
         deltas = delta_class.objects.filter(**{
             delta_class.REVISION_FIELD_NAME: self.pk,
         })
         return deltas
 
-    def get_object_deltas(self) -> _typing.QuerySet['AbstractObjectDelta']:  # type: ignore[misc]
+    def get_object_deltas(self) -> _typing.QuerySet['AbstractObjectDelta']:  # type: ignore[type-arg]
         delta_class = get_delta_model()
         object_delta_class = get_object_delta_model()
         q_lhs = LOOKUP_SEP.join([
@@ -111,7 +111,7 @@ class AbstractRevision(
         })
         return object_deltas
 
-    def get_attribute_deltas(self) -> _typing.QuerySet['AbstractAttributeDelta']:  # type: ignore[misc]
+    def get_attribute_deltas(self) -> _typing.QuerySet['AbstractAttributeDelta']:  # type: ignore[type-arg]
         delta_class = get_delta_model()
         attribute_delta_class = get_attribute_delta_model()
         q_lhs = LOOKUP_SEP.join([
@@ -520,7 +520,7 @@ class AbstractObjectDelta(
     class Meta:  # type: ignore[override]
         abstract = True
 
-    def get_attribute_deltas(self) -> _typing.QuerySet['AbstractAttributeDelta']:  # type: ignore[misc]
+    def get_attribute_deltas(self) -> _typing.QuerySet['AbstractAttributeDelta']:  # type: ignore[type-arg]
         attribute_delta_class = get_attribute_delta_model()
         attribute_deltas = attribute_delta_class.objects.filter(**{
             attribute_delta_class.PARENT_LINK_FIELD_NAME: self.pk,
