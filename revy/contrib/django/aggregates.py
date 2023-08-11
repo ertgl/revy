@@ -7,7 +7,6 @@ from typing import (
 )
 
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
 from django.db.backends.base.base import BaseDatabaseWrapper
 from django.db.models import (
     Field,
@@ -30,18 +29,15 @@ if TYPE_CHECKING:
     from revy.contrib.django.models import AbstractDelta
 
 
-__all__ = (
-    'ObjectSnapshot',
-)
+__all__ = ("ObjectSnapshot",)
 
 
-T = TypeVar('T')
+T = TypeVar("T")
 
-IF_T = TypeVar('IF_T', bound='_InstanceField')
+IF_T = TypeVar("IF_T", bound="_InstanceField")
 
 
 class _InstanceField(JSONField):
-
     model: Type[Model]
 
     def __init__(
@@ -67,12 +63,13 @@ class _InstanceField(JSONField):
             return self.model(**python_value)
         if isinstance(python_value, (list, tuple)):
             container_type = type(python_value)
-            return container_type(map(lambda kwargs: self.model(**kwargs), python_value))
+            return container_type(
+                map(lambda kwargs: self.model(**kwargs), python_value)
+            )
         return python_value
 
 
 class ObjectSnapshot(Subquery):
-
     @classmethod
     def get_ct_fk_fields(
         cls,
@@ -99,24 +96,30 @@ class ObjectSnapshot(Subquery):
         obj_ct_field, obj_fk_field = cls.get_ct_fk_fields(object_delta_model)
         att_ct_field, att_fk_field = cls.get_ct_fk_fields(attribute_delta_model)
         for field in options.get_fields():
-            attname = getattr(field, 'attname', None)
-            one_to_many = getattr(field, 'one_to_many', False)
-            many_to_many = getattr(field, 'many_to_many', False)
+            attname = getattr(field, "attname", None)
+            one_to_many = getattr(field, "one_to_many", False)
+            many_to_many = getattr(field, "many_to_many", False)
             any_to_many = one_to_many or many_to_many
             if not attname or any_to_many:
                 continue
-            annotations[attname] = attribute_delta_model.objects.filter(
-                **{
-                    att_ct_field.attname: OuterRef(obj_ct_field.attname),
-                    att_fk_field.attname: OuterRef(obj_fk_field.attname),
-                    attribute_delta_model.ATTRIBUTE_NAME_FIELD_NAME: attname,
-                    f'{attribute_delta_model.OBJECT_DELTA_FIELD_NAME}__pk__lte': OuterRef('pk'),
-                },
-            ).order_by(
-                '-pk',
-            ).values(
-                attribute_delta_model.NEW_VALUE_FIELD_NAME,
-            )[:1]
+            annotations[attname] = (
+                attribute_delta_model.objects.filter(
+                    **{
+                        att_ct_field.attname: OuterRef(obj_ct_field.attname),
+                        att_fk_field.attname: OuterRef(obj_fk_field.attname),
+                        attribute_delta_model.ATTRIBUTE_NAME_FIELD_NAME: attname,
+                        f"{attribute_delta_model.OBJECT_DELTA_FIELD_NAME}__pk__lte": OuterRef(
+                            "pk"
+                        ),
+                    },
+                )
+                .order_by(
+                    "-pk",
+                )
+                .values(
+                    attribute_delta_model.NEW_VALUE_FIELD_NAME,
+                )[:1]
+            )
         return JSONObject(**annotations)  # type: ignore[arg-type]
 
     @classmethod
@@ -133,12 +136,15 @@ class ObjectSnapshot(Subquery):
         **kwargs: Any,
     ) -> None:
         object_delta_model = get_object_delta_model()
-        ContentType.objects.get_for_model(model)
-        queryset = object_delta_model.objects.filter(
-            pk=OuterRef('pk'),
-        ).annotate(
-            snapshot=self.__class__.build_instance(model),
-        ).values(
-            'snapshot',
-        )[:1]
+        queryset = (
+            object_delta_model.objects.filter(
+                pk=OuterRef("pk"),
+            )
+            .annotate(
+                snapshot=self.__class__.build_instance(model),
+            )
+            .values(
+                "snapshot",
+            )[:1]
+        )
         super(ObjectSnapshot, self).__init__(queryset, **kwargs)
