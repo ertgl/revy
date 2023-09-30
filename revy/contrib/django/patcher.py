@@ -263,6 +263,8 @@ class Patcher:
                 return original_setattr(self, attname, value)
             if field.one_to_many or field.many_to_many:
                 return original_setattr(self, attname, value)
+            if field.column is None:
+                return original_setattr(self, attname, value)
 
             new_value = value
             if field.is_relation and isinstance(value, Model):
