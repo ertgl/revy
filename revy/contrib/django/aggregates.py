@@ -34,8 +34,6 @@ __all__ = ("ObjectSnapshot",)
 
 T = TypeVar("T")
 
-IF_T = TypeVar("IF_T", bound="_InstanceField")
-
 
 class _InstanceField(JSONField):
     model: Type[Model]
@@ -49,9 +47,9 @@ class _InstanceField(JSONField):
         super(_InstanceField, self).__init__(**kwargs)
 
     def from_db_value(
-        self: IF_T,
+        self,
         value: Any,
-        expression: IF_T,
+        expression: Any,
         connection: BaseDatabaseWrapper,
     ) -> Any:
         python_value = super(_InstanceField, self).from_db_value(  # type: ignore[misc]
