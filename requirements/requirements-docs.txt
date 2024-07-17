@@ -1,3 +1,3 @@
 pydata-sphinx-theme==0.15.4
-Sphinx==7.4.4
+Sphinx==7.4.5
 sphinx-copybutton==0.5.2
