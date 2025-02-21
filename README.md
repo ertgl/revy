@@ -1,26 +1,76 @@
-### [Revy](#)
+### Revy
 
-A toolkit for building revision control systems.
+A toolkit for building revision control systems around
+[Django](https://www.djangoproject.com/) models.
 
----
+## Table of Contents
+- [Overview](#overview)
+- [Installation](#installation)
+- [Setup](#setup)
+- [Usage](#usage)
+  - [Polymorphic Actor Types](#polymorphic-actor-types)
+  - [Collaborative Revisions](#collaborative-revisions)
+  - [Foreign Key Deletion Handlers](#foreign-key-deletion-handlers)
+  - [Snapshots and Rollbacks](#snapshots-and-rollbacks)
+  - [Disabling Tracking Temporarily](#disabling-tracking-temporarily)
+- [Glossary](#glossary)
+- [License](#license)
 
-:warning: Currently only [Django](https://www.djangoproject.com/) support is available.
+## Overview
 
----
+Revy is a powerful toolkit designed to build revision control systems for
+Django models. It provides a flexible framework for automatically tracking
+changes to model instances, enabling the creation of detailed revision
+histories. Whether you need to track simple changes or manage complex
+collaborative revisions, revy offers an easy-to-use, fast and efficient
+solution.
+
+Revy tracks changes at the object and attribute levels, and stores them in a
+tabular format for easy querying and analysis. It supports polymorphic actor
+types, allowing actors to be instances of any model, and allows customizing
+the database models using Django's swappable models feature. Revy also offers
+drop-in replacements for Django's foreign key deletion handlers, making it easy
+to track cascading deletions and other related changes. To get snapshots and
+make rollbacks, revy provides an ORM function named as `ObjectSnapshot`, which
+reconstructs model instances from object deltas with a single query.
+
+The tracking system is built around the concept of contexts, which provide a
+managed scope for tracking revisions, actors, and changes. Contexts can be
+disabled and re-enabled as needed, allowing developers to control when and how
+changes are tracked.
+
+Behind the scenes, revy patches Django models to add tracking functionality,
+and uses the [stackholm](https://github.com/ertgl/stackholm/) project to manage
+contexts as indexed stacks. This allows for zero-copy context operations with
+O(1) time complexity (at worst it is amortized O(1)), so the solution is both
+time and memory efficient.
+
+The implementation is synchronous and asynchronous compatible, making it easy
+to integrate with existing Django projects.
+
+## Installation
+
+Revy is available on PyPI. It can be installed using any compatible package
+manager, such as `pip`:
+
+```shell
+pip install revy
+```
+
+## Setup
+
+Add `'revy.contrib.django'` to `INSTALLED_APPS` in your Django project.
 
 
-## Features
+```python
+INSTALLED_APPS = [
+  'revy.contrib.django',
+]
+```
 
-With this library, you can produce various revision control systems for your data.
-When Revy is used without any customization, it simply gives you a revision history.
+## Usage
 
-All the models in the package are swappable. So, you are free to expand the logic
-by writing your own models instead of using the default ones.
-
-### Idiomatic and Declarative Syntax
-
-Write the code as you think. When you enter a Revy context, it tracks all the changes
-automatically.
+Simply wrap your code in a context block to enable automatic tracking.
 
 ```python
 from revy import Context
@@ -30,36 +80,37 @@ with (
   Context.via_actor(None),
   Context.via_revision_description("Detected by the system."),
 ):
+    # Changes made in this block will be tracked automatically.
     comment.is_marked_as_spam = True
+    # Saving the instance will create a new revision.
     comment.save()
 ```
 
+### Polymorphic Actor Types
 
-Context management is done by the [Stackholm](https://github.com/ertgl/stackholm/) project.
-The implementation is both space and time efficient, also sync / async compatible.
-Context (or stack) operations have O(1) time complexity, and they are zero-copy.
-(Except the methods prefixed by `via_`. They are O(n) in the worst case, where n is the
-number of checkpoint datas to be set, which constantly equals to 1. That makes them amortized O(1).)
-
-
-### Generic Actors
-
-Actors can be any instance of any model.
+Revy uses polymorphic relationships to associate actors with revisions. This
+means that actors can be instances of any model, e.g., user, organization,
+system, etc.
 
 ```python
 @Context()
 def view(request):
-    if request.META.get('HTTP_X_PERFORM_AS_ORGANIZATION'):
+    # If the request made on behalf of an organization,
+    # set the actor as the organization.
+    if (
+      # Check if the request has an HTTP header to perform as an organization.
+      request.META.get('HTTP_X_PERFORM_AS_ORGANIZATION')
+      and request.organization is not None
+    ):
         Context.set_actor(request.organization)
     else:
         Context.set_actor(request.user)
 ```
 
+#### Collaborative Revisions
 
-### Multiple Actors In One Revision
-
-Revy can be used in collaborative systems too. Multiple actors can be
-involved together in one revision.
+Revy supports collaborative systems, allowing multiple actors in a single
+revision.
 
 ```python
 from revy import Context as C
@@ -79,54 +130,35 @@ def view(request):
         local_amount = instance.amount * instance.exchange_rate
         if instance.local_amount != local_amount:
             with (
+                # Assume that `None` is the system.
                 C.via_actor(None),
                 C.via_attribute_delta_description(
                     'Corrected by the system.',
                 ),
             ):
-                # <-- The actor is `None` in this block.
+                # <-- The actor is the system in this block.
                 instance.local_amount = local_amount
             # <-- The actor here is `request.user` again.
         instance.save()
 ```
 
+#### Foreign Key Deletion Handlers
 
-### Disabling Automatic Delta Generation Temporarily
+Revy provides drop-in replacements for Django's foreign key deletion handlers.
 
-When you need it, you can write code like below to disable / re-enable the tracking.
-
-```python
-@Context()
-def some_task():
-    Context.disable()
-    ...
-    Context.enable()
-```
-
-```python
-@Context()
-def some_task():
-    with Context.as_disabled():
-        ... # <-- Context is disabled in this block.
-    # <-- Here context is re-enabled.
-```
-
-
-### Foreign Key Deletion Handler
-
-Revy has drop in replacements for Django's foreign key deletion handlers.
-
-If there is no active context or the existing context is disabled during
-the deletion, fallbacks to the corresponding Django deletion handler.
+If no active context exists or if the current context is disabled during
+deletion, the corresponding Django handler will be used as a fallback.
 
 **Supported handler types:**
 
 - `CASCADE`
 - `SET`
-- `SET_NULL`
 - `SET_DEFAULT`
+- `SET_NULL`
 
 ```python
+# Import `CASCADE` from `revy.contrib.django.models` module
+# instead of `django.db.models` module, to use revy's handler.
 from revy.contrib.django.models import CASCADE
 
 class Post(Model):
@@ -148,14 +180,12 @@ with (
     user.delete()
 ```
 
+#### Snapshots and Rollbacks
 
-### Getting Snapshots of Object Deltas
+Revy provides an ORM function named as `ObjectSnapshot` to reconstruct
+model instances from object deltas with a single query.
 
-Revy provides an ORM function called as `ObjectSnapshot`. It helps
-to reconstruct model instances from deltas which are relative to 
-the object deltas, using only one query.
-
-For instance, the following example can be considered as a rollback operation.
+The following example demonstrates a rollback operation:
 
 ```python
 from django.contrib.contenttypes.models import ContentType
@@ -183,30 +213,43 @@ object_delta = ObjectDelta.objects.filter(
 object_delta.snapshot.save()
 ```
 
+#### Disabling Tracking Temporarily
 
-## Installation
-
-Revy is available on [PyPI](https://pypi.org/project/revy/).
-It can be installed and upgraded using [pip](https://pip.pypa.io):
-
-```shell
-pip install revy
-```
-
-
-## Setup
-
-Add `'revy.contrib.django'` to `INSTALLED_APPS` in your Django project.
-
+Tracking can be disabled and re-enabled as needed.
 
 ```python
-INSTALLED_APPS = [
-  'revy.contrib.django',
-]
+@Context()
+def some_task():
+    Context.disable()
+    ...
+    Context.enable()
 ```
 
-___
+```python
+@Context()
+def some_task():
+    with Context.as_disabled():
+        ... # <-- Context is disabled in this block.
+    # <-- Here context is re-enabled.
+```
+
+## Glossary
+
+- **Actor**: An entity (e.g., user, organization, system, etc.) responsible for
+  making changes.
+- **Attribute delta**: A change made to a model instance's attribute (e.g., set,
+  unset).
+- **Context**: A managed scope that tracks revisions, actors, and changes.
+- **Delta**: Either an object delta or an attribute delta.
+- **Object delta**: A change made to a model instance (e.g., create, update,
+  delete). An object delta can contain multiple attribute deltas.
+- **Revision**: A collection of deltas made by one or more actors.
+- **Snapshot**: A record of an object's state at a specific point in time
+  (e.g., before a change).
 
 ## License
 
-See the [LICENSE](https://github.com/ertgl/revy/blob/main/LICENSE) file.
+This project is licensed under the
+[MIT License](https://opensource.org/license/mit).
+
+See the [LICENSE](LICENSE) file for more details.
