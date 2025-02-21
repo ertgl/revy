@@ -95,7 +95,7 @@ system, etc.
 ```python
 @Context()
 def view(request):
-    # If the request made on behalf of an organization,
+    # If the request was made on behalf of an organization,
     # set the actor as the organization.
     if (
       # Check if the request has an HTTP header to perform as an organization.
