@@ -107,7 +107,7 @@ def view(request):
         Context.set_actor(request.user)
 ```
 
-#### Collaborative Revisions
+### Collaborative Revisions
 
 Revy supports collaborative systems, allowing multiple actors in a single
 revision.
@@ -142,7 +142,7 @@ def view(request):
         instance.save()
 ```
 
-#### Foreign Key Deletion Handlers
+### Foreign Key Deletion Handlers
 
 Revy provides drop-in replacements for Django's foreign key deletion handlers.
 
@@ -180,7 +180,7 @@ with (
     user.delete()
 ```
 
-#### Snapshots and Rollbacks
+### Snapshots and Rollbacks
 
 Revy provides an ORM function named as `ObjectSnapshot` to reconstruct
 model instances from object deltas with a single query.
@@ -213,7 +213,7 @@ object_delta = ObjectDelta.objects.filter(
 object_delta.snapshot.save()
 ```
 
-#### Disabling Tracking Temporarily
+### Disabling Tracking Temporarily
 
 Tracking can be disabled and re-enabled as needed.
 
