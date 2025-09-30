@@ -18,35 +18,36 @@ A toolkit for building revision control systems around
 
 ## Overview
 
-Revy is a powerful toolkit designed to build revision control systems for
-Django models. It provides a flexible framework for automatically tracking
-changes to model instances, enabling the creation of detailed revision
-histories. Whether you need to track simple changes or manage complex
-collaborative revisions, revy offers an easy-to-use, fast and efficient
-solution.
+Revy is a powerful toolkit for building revision control systems for Django
+models. It provides a flexible framework to automatically track changes to
+model instances, enabling the creation of detailed revision histories. Whether
+you need to track simple modifications or manage complex collaborative
+revisions, Revy delivers a very fast, efficient, and easy-to-use solution.
 
-Revy tracks changes at the object and attribute levels, and stores them in a
-tabular format for easy querying and analysis. It supports polymorphic actor
-types, allowing actors to be instances of any model, and allows customizing
-the database models using Django's swappable models feature. Revy also offers
-drop-in replacements for Django's foreign key deletion handlers, making it easy
-to track cascading deletions and other related changes. To get snapshots and
-make rollbacks, revy provides an ORM function named as `ObjectSnapshot`, which
-reconstructs model instances from object deltas with a single query.
+Revy monitors changes at both the object and attribute levels, storing them in
+a **tabular format** for straightforward querying and analysis. It supports
+**polymorphic actor types**, allowing actors to be instances of any model, and
+enables customization of database models through Django's **swappable models**
+feature. Revy also provides drop-in replacements for Django's
+**foreign key deletion handlers**, simplifying the tracking of cascading
+deletions and related changes. For snapshots and rollbacks, Revy offers the
+`ObjectSnapshot` ORM function, which reconstructs model instances from object
+deltas using a single query.
 
-The tracking system is built around the concept of contexts, which provide a
-managed scope for tracking revisions, actors, and changes. Contexts can be
-disabled and re-enabled as needed, allowing developers to control when and how
-changes are tracked.
+The tracking system is organized around contexts, which provide a managed scope
+for revisions, actors, and changes. Contexts can be temporarily disabled or
+re-enabled as needed, giving developers full control over when and how changes
+are tracked.
 
-Behind the scenes, revy patches Django models to add tracking functionality,
-and uses the [stackholm](https://github.com/ertgl/stackholm/) project to manage
-contexts as indexed stacks. This allows for zero-copy context operations with
-O(1) time complexity (at worst it is amortized O(1)), so the solution is both
-time and memory efficient.
+Under the hood, Revy patches Django models to add tracking functionality and
+leverages the [stackholm](https://github.com/ertgl/stackholm/) project to
+manage contexts as indexed stacks. This enables zero-copy context operations
+with O(1) time complexity (amortized), making the solution highly efficient in
+both time and memory.
 
-The implementation is synchronous and asynchronous compatible, making it easy
-to integrate with existing Django projects.
+Revy's implementation is compatible with both synchronous and asynchronous
+workflows, ensuring smooth integration into both new and existing Django
+projects.
 
 ## Installation
 
